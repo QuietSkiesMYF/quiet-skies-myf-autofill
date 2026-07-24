@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Quiet Skies MYF — Report Filer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dusk-900:#10161d;
+    --dusk-800:#1a232d;
+    --dusk-700:#243342;
+    --dusk-600:#324459;
+    --fog-100:#eaf1f5;
+    --fog-300:#b7c5d1;
+    --amber-500:#e2a33b;
+    --amber-600:#c98a24;
+    --radar-400:#6fa886;
+    --danger-400:#c96a5a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--dusk-900);
+    color:var(--fog-100);
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex;
+    justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    padding-bottom:220px;
+  }
+  header.top{
+    padding:22px 20px 14px;
+    border-bottom:1px solid var(--dusk-700);
+    background:linear-gradient(180deg, #131b24, #10161d);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    color:var(--radar-400);
+    text-transform:uppercase;
+    margin:0 0 4px;
+  }
+  h1{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:28px;
+    letter-spacing:.01em;
+    margin:0;
+    line-height:1.1;
+  }
+  .sub{
+    color:var(--fog-300);
+    font-size:13px;
+    margin-top:6px;
+    line-height:1.4;
+  }
+  main{flex:1; padding:18px 20px 12px;}
+  section.screen{display:none;}
+  section.screen.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .card{
+    background:var(--dusk-800);
+    border:1px solid var(--dusk-700);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .field{margin-bottom:12px;}
+  .field:last-child{margin-bottom:0;}
+  label.flabel{
+    display:block;
+    font-size:12px;
+    color:var(--fog-300);
+    margin-bottom:5px;
+    font-weight:500;
+  }
+  label.flabel .opt{
+    color:var(--fog-300);
+    opacity:.7;
+    font-weight:400;
+    text-transform:none;
+    letter-spacing:0;
+  }
+  input[type=text], input[type=tel], input[type=email], textarea{
+    width:100%;
+    background:var(--dusk-900);
+    border:1px solid var(--dusk-600);
+    color:var(--fog-100);
+    border-radius:9px;
+    padding:11px 12px;
+    font-size:15px;
+    font-family:'Inter',sans-serif;
+  }
+  input:disabled, textarea:disabled{
+    color:var(--fog-100);
+    opacity:.75;
+    background:var(--dusk-800);
+  }
+  textarea{resize:vertical; min-height:88px;}
+  input:focus, textarea:focus{outline:2px solid var(--amber-500); outline-offset:1px;}
+
+  .locked-banner{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(111,168,134,.12);
+    border:1px solid rgba(111,168,134,.35);
+    color:var(--radar-400);
+    font-size:12.5px;
+    padding:9px 11px;
+    border-radius:9px;
+    margin-bottom:14px;
+    font-weight:500;
+  }
+
+  .btn{
+    display:block;
+    width:100%;
+    text-align:center;
+    padding:13px 16px;
+    border-radius:11px;
+    font-size:15px;
+    font-weight:600;
+    border:none;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-primary{background:var(--amber-500); color:#241a08;}
+  .btn-primary:active{background:var(--amber-600);}
+  .btn-outline{background:transparent; color:var(--fog-100); border:1px solid var(--dusk-600);}
+  .btn + .btn{margin-top:9px;}
+
+  .chiprow{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    padding:9px 14px;
+    border-radius:999px;
+    border:1px solid var(--dusk-600);
+    background:var(--dusk-900);
+    color:var(--fog-300);
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    user-select:none;
+  }
+  .chip.selected{
+    background:var(--amber-500);
+    border-color:var(--amber-500);
+    color:#241a08;
+  }
+
+  .fixed-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 14px;
+    border-radius:999px;
+    background:var(--dusk-700);
+    color:var(--fog-100);
+    font-size:13.5px;
+    font-weight:500;
+    border:1px solid var(--dusk-600);
+  }
+  .fixed-pill .lockicon{opacity:.6; font-size:11px;}
+
+  .strip{
+    background:var(--fog-100);
+    color:#16202a;
+    border-radius:6px;
+    padding:14px 14px 14px 18px;
+    position:relative;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    line-height:1.65;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+  }
+  .strip::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:6px;
+    background:repeating-linear-gradient(180deg, var(--amber-500) 0 8px, var(--dusk-900) 8px 12px);
+    border-radius:6px 0 0 6px;
+  }
+  .strip .row{display:flex; justify-content:space-between; gap:10px;}
+  .strip .k{color:#5c6b78; text-transform:uppercase; letter-spacing:.06em; font-size:10px;}
+  .strip .v{font-weight:600;}
+  .strip hr{border:none; border-top:1px dashed #c3ccd2; margin:8px 0;}
+
+  .section-title{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    color:var(--fog-300);
+    margin:0 0 10px;
+  }
+
+  footer.tabbar{
+    position:fixed;
+    bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
+    background:var(--dusk-800);
+    border-top:1px solid var(--dusk-700);
+    display:flex;
+    padding:8px 10px calc(10px + env(safe-area-inset-bottom));
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:8px 4px;
+    border-radius:10px;
+    color:var(--fog-300);
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .tab.active{color:var(--amber-500); background:rgba(226,163,59,.08);}
+  .tab .dot{
+    display:block; width:5px; height:5px; border-radius:50%;
+    background:currentColor; margin:0 auto 5px; opacity:0;
+  }
+  .tab.active .dot{opacity:1;}
+
+  .helptext{font-size:12px; color:var(--fog-300); margin-top:8px; line-height:1.5;}
+  .code-box{
+    background:var(--dusk-900);
+    border:1px solid var(--dusk-600);
+    border-radius:9px;
+    padding:10px 12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--radar-400);
+    word-break:break-all;
+    max-height:90px;
+    overflow-y:auto;
+    margin-top:8px;
+  }
+  .toast{
+    position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
+    background:var(--radar-400); color:#0f1a13;
+    padding:10px 16px; border-radius:999px;
+    font-size:13px; font-weight:600;
+    opacity:0; pointer-events:none;
+    transition:opacity .25s ease;
+    max-width:90%; text-align:center;
+    z-index:50;
+  }
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="top">
+    <p class="eyebrow">Quiet Skies MYF</p>
+    <h1 id="pageTitle">MYF Noise Complaint Form</h1>
+    <p class="sub" id="pageSub">A way to file faster. Follow How To Use Tab instructions. Then filing is 1 tap to fill out, click the captcha, submit</p>
+  </header>
+
+  <main>
+
+    <!-- SCREEN: COMPLAINT FORM (merged) -->
+    <section id="screen-form" class="screen active">
+      <div id="lockedBanner" class="locked-banner" style="display:none;">
+        🔒 Your info is saved and locked. Tap Edit below to change it.
+      </div>
+
+      <div class="card">
+        <p class="section-title">Reported by</p>
+        <div class="field">
+          <label class="flabel">Full name</label>
+          <input type="text" id="in_name" placeholder="Jane Doe">
+        </div>
+        <div class="field">
+          <label class="flabel">Street address</label>
+          <input type="text" id="in_address" placeholder="123 Clairemont Dr">
+        </div>
+        <div class="field">
+          <label class="flabel">ZIP code</label>
+          <input type="text" id="in_zip" placeholder="92117" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label class="flabel">Phone <span class="opt">(optional)</span></label>
+          <input type="tel" id="in_phone" placeholder="(619) 555-0123">
+        </div>
+        <div class="field">
+          <label class="flabel">Email <span class="opt">(optional)</span></label>
+          <input type="email" id="in_email" placeholder="jane@example.com">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btnSaveInfo">Save & Lock</button>
+      <button class="btn btn-outline" id="btnEditInfo" style="display:none;">Edit info</button>
+
+      <div class="card" style="margin-top:14px;">
+        <p class="section-title">Type of aircraft / operation / contact / city</p>
+        <div class="chiprow">
+          <span class="fixed-pill"><span class="lockicon">🔒</span> Single-Prop</span>
+          <span class="fixed-pill"><span class="lockicon">🔒</span> Departure</span>
+          <span class="fixed-pill"><span class="lockicon">🔒</span> Contact: No</span>
+          <span class="fixed-pill"><span class="lockicon">🔒</span> San Diego</span>
+        </div>
+        <p class="helptext">Fixed for pattern-work reports. Contact the campaign if you ever need to file a different type.</p>
+      </div>
+
+      <div class="card">
+        <p class="section-title">Comments</p>
+        <textarea id="in_comments"></textarea>
+      </div>
+
+      <button class="btn btn-primary" id="btnFill">Copy Fill Code</button>
+      <p class="helptext" style="text-align:center; margin-top:14px; margin-bottom:14px;">Copies your info into a ready-to-paste code. Date and time are captured live, the moment your bookmark is tapped on the real form — not now.</p>
+
+      <div class="card" style="padding-bottom:12px;">
+        <p class="section-title">MYF Complaint Form Preview</p>
+        <div class="strip" id="stripPreview">
+          <div class="row"><span class="k">Date / Time</span><span class="v" id="pv_datetime">set on Fill</span></div>
+          <hr>
+          <div class="row"><span class="k">Reported by</span><span class="v" id="pv_name">—</span></div>
+          <div class="row"><span class="k">Address</span><span class="v" id="pv_address">—</span></div>
+          <hr>
+          <div class="row"><span class="k">Aircraft</span><span class="v">Single-Prop</span></div>
+          <div class="row"><span class="k">Operation</span><span class="v">Departure</span></div>
+          <div class="row"><span class="k">Contact?</span><span class="v">No</span></div>
+        </div>
+      </div>
+
+      <div class="card" id="afterFillCard" style="display:none;">
+        <p class="section-title">Code copied</p>
+        <p class="helptext">Go to the <b>How To Use</b> tab and paste this into your saved bookmark's address field (only needed once, or again if you ever change your info or comments above).</p>
+        <div class="code-box" id="codePreview"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN: HOW TO USE -->
+    <section id="screen-setup" class="screen">
+      <div class="card">
+        <p class="section-title">One-tap Favorite (2 min, one time)</p>
+        <p class="helptext">
+        <b>Don't see a Share or Bookmarks icon in Safari?</b> Go to Settings → Apps → Safari → Tabs, and switch the layout to "Bottom" or "Top" (not "Compact"). This keeps Share, Bookmarks, and Tabs always visible.
+        </p>
+        <p class="helptext" style="margin-top:10px;">
+        1. Open the <a href="https://www.sandiego.gov/airports/noise/complaintform" target="_blank" style="color:var(--radar-400);">city complaint form</a> in Safari.<br>
+        2. Tap the <b>Share</b> icon → <b>Add Bookmark</b>. Name it "Quiet Skies Fill."<br>
+        3. Go to Bookmarks, tap <b>Edit</b> next to your new bookmark.<br>
+        4. Replace the whole web address with the code below (tap <b>Copy fill code</b> here any time — it always grabs whatever's currently entered on the Complaint Form tab).<br>
+        5. Save. Now, any time you're on the complaint form <b>or on the page that appears right after you submit</b>, tap that bookmark. On the complaint form, it fills everything in. On the "complaint submitted" page, it takes you straight to a fresh blank form — tap the bookmark once more there and that fresh form fills in too. Date and time are captured fresh every time you tap it.
+        </p>
+        <button class="btn btn-outline" id="btnCopyBookmarklet">Copy fill code</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="tabbar">
+    <div class="tab active" data-screen="screen-form"><span class="dot"></span>Complaint Form</div>
+    <div class="tab" data-screen="screen-setup"><span class="dot"></span>How To Use</div>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+  const FORM_URL = "https://www.sandiego.gov/airports/noise/complaintform";
+  const STORAGE_KEY = "qsm_myinfo_v1";
+  const DEFAULT_COMMENTS = "Constant high power pattern work fly overs.\nSomeone's hobby should not be our health hazard - Stop pattern work flights over residential areas now!";
+
+  // ---------- precise bottom clearance so content never hides behind the fixed tab bar ----------
+  function fixBottomClearance(){
+    const tabbar = document.querySelector('footer.tabbar');
+    const app = document.getElementById('app');
+    if(!tabbar || !app) return;
+    const h = tabbar.getBoundingClientRect().height;
+    app.style.paddingBottom = (h + 100) + 'px';
+  }
+  fixBottomClearance();
+  window.addEventListener('load', fixBottomClearance);
+  window.addEventListener('resize', fixBottomClearance);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', fixBottomClearance);
+    window.visualViewport.addEventListener('scroll', fixBottomClearance);
+  }
+
+  // ---------- tab navigation ----------
+  const tabs = document.querySelectorAll('.tab');
+  const screens = document.querySelectorAll('.screen');
+  const titleMap = {
+    'screen-form': ['MYF Noise Complaint Form', "A way to file faster. Follow How To Use Tab instructions. Then filing is 1 tap to fill out, click the captcha, submit"],
+    'screen-setup': ['How To Use', 'Set up your one-tap Favorite once, then file reports in a single tap.']
+  };
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x=>x.classList.remove('active'));
+    screens.forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.screen).classList.add('active');
+    const [title, sub] = titleMap[t.dataset.screen];
+    document.getElementById('pageTitle').textContent = title;
+    document.getElementById('pageSub').textContent = sub;
+    fixBottomClearance();
+  }));
+
+  // ---------- toast ----------
+  let toastTimer;
+  function toast(msg){
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>el.classList.remove('show'), 2400);
+  }
+
+  // ---------- My Info: load / save / lock ----------
+  const infoFields = ['name','address','zip','phone','email'];
+  const inputs = {};
+  infoFields.forEach(f => inputs[f] = document.getElementById('in_'+f));
+
+  function loadInfo(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+  function setLocked(locked){
+    infoFields.forEach(f => inputs[f].disabled = locked);
+    document.getElementById('lockedBanner').style.display = locked ? 'flex' : 'none';
+    document.getElementById('btnSaveInfo').style.display = locked ? 'none' : 'block';
+    document.getElementById('btnEditInfo').style.display = locked ? 'block' : 'none';
+  }
+  function applyInfoToInputs(data){
+    infoFields.forEach(f => inputs[f].value = data[f] || '');
+  }
+
+  const existing = loadInfo();
+  if(existing){ applyInfoToInputs(existing); setLocked(true); }
+
+  document.getElementById('btnSaveInfo').addEventListener('click', () => {
+    const data = {};
+    let missing = [];
+    infoFields.forEach(f => {
+      data[f] = inputs[f].value.trim();
+      if(!data[f] && (f==='name' || f==='address' || f==='zip')) missing.push(f);
+    });
+    if(missing.length){
+      toast('Fill in name, address, and ZIP first');
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    setLocked(true);
+    toast('Saved and locked');
+    updatePreview();
+  });
+
+  document.getElementById('btnEditInfo').addEventListener('click', () => {
+    if(confirm('Unlock your saved info to make changes?')){
+      setLocked(false);
+    }
+  });
+
+  // ---------- comments default ----------
+  const commentsEl = document.getElementById('in_comments');
+  commentsEl.value = DEFAULT_COMMENTS;
+
+  // ---------- preview ----------
+  function updatePreview(){
+    const info = loadInfo() || {};
+    document.getElementById('pv_name').textContent = info.name || '—';
+    document.getElementById('pv_address').textContent = (info.address ? info.address + ', San Diego' : '—');
+    document.getElementById('pv_datetime').textContent = 'set on Fill';
+  }
+  updatePreview();
+
+  // ---------- bookmarklet / fill-code generator ----------
+  function buildFillCode(){
+    const info = loadInfo();
+    if(!info || !info.name || !info.address || !info.zip){
+      toast('Save your info first (name, address, ZIP)');
+      return null;
+    }
+    const comments = commentsEl.value.trim();
+
+    const payload = {
+      name: info.name, address: info.address, city: 'San Diego', zip: info.zip,
+      phone: info.phone||'', email: info.email||'',
+      state: 'California',
+      aircraftId: 'edit-type-of-aircraft-9-1',
+      operationId: 'edit-type-of-operation-9-1',
+      contactId: 'edit-would-you-like-someone-to-contact-you-17-no',
+      comments: comments,
+      formUrl: FORM_URL
+    };
+
+    const fn = function(P){
+      if(!document.getElementById('edit-name-2')){
+        window.location.href = P.formUrl;
+        return;
+      }
+      function setValue(id, value){
+        var el = document.getElementById(id);
+        if(!el) return;
+        var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+        var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+        setter.call(el, value);
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      function setSelect(id, value){
+        var el = document.getElementById(id);
+        if(!el) return;
+        var setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
+        setter.call(el, value);
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      function setRadio(id){
+        var el = document.getElementById(id);
+        if(!el) return;
+        el.checked = true;
+        el.dispatchEvent(new Event('click', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      setValue('edit-name-2', P.name);
+      setValue('edit-address-address', P.address);
+      setValue('edit-address-city', P.city);
+      setSelect('edit-address-state-province', P.state);
+      setValue('edit-address-postal-code', P.zip);
+      setValue('edit-phone-2', P.phone);
+      setValue('edit-email-2', P.email);
+      var now = new Date();
+      function pd(n){ return String(n).padStart(2,'0'); }
+      setValue('edit-date-and-time-of-event-date', now.getFullYear()+'-'+pd(now.getMonth()+1)+'-'+pd(now.getDate()));
+      setValue('edit-date-and-time-of-event-time', pd(now.getHours())+':'+pd(now.getMinutes())+':'+pd(now.getSeconds()));
+      setRadio(P.aircraftId);
+      setRadio(P.operationId);
+      setRadio(P.contactId);
+      if(P.comments) setValue('edit-comments', P.comments);
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    };
+
+    const code = 'javascript:(' + fn.toString() + ')(' + JSON.stringify(payload) + ');void 0;';
+    return code;
+  }
+
+  document.getElementById('btnFill').addEventListener('click', () => {
+    const code = buildFillCode();
+    if(!code) return;
+    navigator.clipboard.writeText(code).then(()=>{
+      toast('Copied — see How To Use tab to paste it into your bookmark');
+    }).catch(()=>{
+      toast('Copied to text box below — copy manually if needed');
+    });
+    document.getElementById('afterFillCard').style.display = 'block';
+    document.getElementById('codePreview').textContent = code;
+    updatePreview();
+  });
+
+  document.getElementById('btnCopyBookmarklet').addEventListener('click', () => {
+    const code = buildFillCode();
+    if(!code) return;
+    navigator.clipboard.writeText(code).then(()=>{
+      toast('Copied — paste into your bookmark\u2019s address field');
+    }).catch(()=>{
+      toast('Copy failed — try again or copy manually');
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
