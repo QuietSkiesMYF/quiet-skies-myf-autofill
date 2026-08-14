@@ -619,7 +619,12 @@
       setRadio(P.operationId);
       setRadio(P.contactId);
       if(P.comments) setValue('edit-comments', P.comments);
+      var dropFocus = function(){
+        var a = document.activeElement;
+        if(a && a !== document.body && typeof a.blur === 'function') a.blur();
+      };
       var focusSubmit = function(){
+        dropFocus();
         var el = document.getElementById('edit-submit');
         if(!el) return;
         var top = el.getBoundingClientRect().top + window.pageYOffset;
