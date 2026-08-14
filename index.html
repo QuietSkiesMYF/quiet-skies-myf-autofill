@@ -619,8 +619,16 @@
       setRadio(P.operationId);
       setRadio(P.contactId);
       if(P.comments) setValue('edit-comments', P.comments);
-      var submitBtn = document.getElementById('edit-submit');
-      if(submitBtn) submitBtn.scrollIntoView({behavior:'smooth', block:'center'});
+      var focusSubmit = function(){
+        var el = document.getElementById('edit-submit');
+        if(!el) return;
+        var top = el.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo(0, Math.max(0, top - (window.innerHeight * 0.62)));
+      };
+      focusSubmit();
+      setTimeout(focusSubmit, 350);
+      setTimeout(focusSubmit, 1000);
+      setTimeout(focusSubmit, 2000);
     };
 
     const code = 'javascript:(' + fn.toString() + ')(' + JSON.stringify(payload) + ');void 0;';
