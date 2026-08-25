@@ -291,21 +291,25 @@
       <div class="card">
         <p class="section-title">Reported by</p>
         <div class="field">
-          <label class="flabel">Full name</label>
-          <input type="text" id="in_name" placeholder="Jane Doe">
+          <label class="flabel">First name</label>
+          <input type="text" id="in_firstname" placeholder="Jane">
         </div>
         <div class="field">
-          <label class="flabel">Street address</label>
-          <input type="text" id="in_address" placeholder="123 Clairemont Dr">
-          <p class="helptext" style="margin-top:5px;">Must be a valid address to be recorded by the city.</p>
+          <label class="flabel">Last name</label>
+          <input type="text" id="in_lastname" placeholder="Doe">
+        </div>
+        <div class="field">
+          <label class="flabel">Address</label>
+          <input type="text" id="in_address" placeholder="6848 Thornwood St, San Diego, CA, USA">
+          <p class="helptext" style="margin-top:5px;">Paste this in exactly as the complaint page formats it. Go to the complaint form, type your address into its Address box, pick your address from the dropdown it shows, then copy the finished text out of that box and paste it here. It must match character-for-character or the city may not record your address.</p>
         </div>
         <div class="field">
           <label class="flabel">ZIP code</label>
           <input type="text" id="in_zip" placeholder="92117" inputmode="numeric">
         </div>
         <div class="field">
-          <label class="flabel">Phone <span class="opt">(optional)</span></label>
-          <input type="tel" id="in_phone" placeholder="(619) 555-0123">
+          <label class="flabel">Phone</label>
+          <input type="tel" id="in_phone" placeholder="619-555-0123">
         </div>
         <div class="field">
           <label class="flabel">Email</label>
@@ -317,11 +321,10 @@
       <button class="btn btn-outline" id="btnEditInfo" style="display:none;">Edit info</button>
 
       <div class="card" style="margin-top:14px;">
-        <p class="section-title">Type of aircraft / operation / city</p>
+        <p class="section-title">Type of aircraft / operation</p>
         <div class="chiprow">
           <span class="fixed-pill"><span class="lockicon">🔒</span> Single-Prop</span>
           <span class="fixed-pill"><span class="lockicon">🔒</span> Departure</span>
-          <span class="fixed-pill"><span class="lockicon">🔒</span> San Diego</span>
         </div>
         <p class="helptext">Fixed for pattern-work reports. Contact the campaign if you ever need to file a different type.</p>
       </div>
@@ -345,7 +348,10 @@
       <div class="card" id="afterFillCard">
         <p class="section-title">Code copied — now set up your bookmark</p>
         <p class="helptext" style="font-size:13px; color:var(--fog-100);">
-        1. Open the <a href="https://www.sandiego.gov/airports/noise/complaintform" target="_blank" style="color:var(--radar-400);">city complaint form</a> in Safari.<br>
+        <b>First, get your address string:</b> open the <a href="https://sandiego.seamlessdocs.com/ng/fa/noise_complaint" target="_blank" style="color:var(--radar-400);">complaint form</a>, type your address into its Address box, tap your address in the dropdown it offers, then copy the finished text out of that box and paste it into the Address field above. Then tap Copy Fill Code again.
+        </p>
+        <p class="helptext" style="font-size:13px; color:var(--fog-100);">
+        1. Open the <a href="https://sandiego.seamlessdocs.com/ng/fa/noise_complaint" target="_blank" style="color:var(--radar-400);">city complaint form</a> in Safari.<br>
         2. Tap the
         <span class="iconword"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><rect x="4" y="13" width="16" height="8" rx="2"/></svg> Share icon</span>
         → <b>Add Bookmark</b>. Name it "Quiet Skies Fill."<br>
@@ -386,7 +392,7 @@
         <b>Don't see a Share or Bookmarks icon in Safari?</b> Go to Settings → Apps → Safari → Tabs, and switch the layout to "Bottom" or "Top" (not "Compact"). This keeps Share, Bookmarks, and Tabs always visible.
         </p>
         <p class="helptext" style="margin-top:10px;">
-        1. Open the <a href="https://www.sandiego.gov/airports/noise/complaintform" target="_blank" style="color:var(--radar-400);">city complaint form</a> in Safari.<br>
+        1. Open the <a href="https://sandiego.seamlessdocs.com/ng/fa/noise_complaint" target="_blank" style="color:var(--radar-400);">city complaint form</a> in Safari.<br>
         2. Tap the
         <span class="iconword"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><rect x="4" y="13" width="16" height="8" rx="2"/></svg> Share icon</span>
         → <b>Add Bookmark</b>. Name it "Quiet Skies Fill."<br>
@@ -424,7 +430,7 @@
 
 <script>
 (function(){
-  const FORM_URL = "https://www.sandiego.gov/airports/noise/complaintform";
+  const FORM_URL = "https://sandiego.seamlessdocs.com/ng/fa/noise_complaint";
   const STORAGE_KEY = "qsm_myinfo_v1";
   const DEFAULT_COMMENTS = "Constant high power pattern work fly overs.\nSomeone's hobby should not be our health hazard - Stop pattern work flights over residential areas now!";
 
@@ -476,7 +482,7 @@
   }
 
   // ---------- My Info: load / save / lock ----------
-  const infoFields = ['name','address','zip','phone','email'];
+  const infoFields = ['firstname','lastname','address','zip','phone','email'];
   const inputs = {};
   infoFields.forEach(f => inputs[f] = document.getElementById('in_'+f));
 
@@ -505,10 +511,10 @@
     let missing = [];
     infoFields.forEach(f => {
       data[f] = inputs[f].value.trim();
-      if(!data[f] && (f==='name' || f==='address' || f==='zip' || f==='email')) missing.push(f);
+      if(!data[f]) missing.push(f);
     });
     if(missing.length){
-      toast('Fill in name, address, ZIP, and email first');
+      toast('All fields are required — fill them all in first');
       return;
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -542,8 +548,8 @@
   // ---------- preview ----------
   function updatePreview(){
     const info = loadInfo() || {};
-    document.getElementById('pv_name').textContent = info.name || '—';
-    document.getElementById('pv_address').textContent = (info.address ? info.address + ', San Diego' : '—');
+    document.getElementById('pv_name').textContent = (info.firstname ? info.firstname + ' ' + (info.lastname||'') : '—');
+    document.getElementById('pv_address').textContent = info.address || '—';
     document.getElementById('pv_contact').textContent = selection.contact || '—';
     document.getElementById('pv_datetime').textContent = 'set on Fill';
   }
@@ -552,8 +558,8 @@
   // ---------- bookmarklet / fill-code generator ----------
   function buildFillCode(){
     const info = loadInfo();
-    if(!info || !info.name || !info.address || !info.zip || !info.email){
-      toast('Save your info first (name, address, ZIP, email)');
+    if(!info || !info.firstname || !info.lastname || !info.address || !info.zip || !info.phone || !info.email){
+      toast('Save all your info first');
       return null;
     }
     if(!selection.contact){
@@ -563,77 +569,157 @@
     const comments = commentsEl.value.trim();
 
     const payload = {
-      name: info.name, address: info.address, city: 'San Diego', zip: info.zip,
-      phone: info.phone||'', email: info.email||'',
-      state: 'California',
-      aircraftId: 'edit-type-of-aircraft-9-1',
-      operationId: 'edit-type-of-operation-9-1',
-      contactId: selection.contact === 'Yes'
-        ? 'edit-would-you-like-someone-to-contact-you-17-yes'
-        : 'edit-would-you-like-someone-to-contact-you-17-no',
+      firstname: info.firstname, lastname: info.lastname,
+      address: info.address, zip: info.zip,
+      phone: info.phone, email: info.email,
+      contactYes: selection.contact === 'Yes',
       comments: comments,
       formUrl: FORM_URL
     };
 
     const fn = function(P){
-      if(!document.getElementById('edit-name-2')){
-        window.location.href = P.formUrl;
-        return;
-      }
-      function setValue(id, value){
-        var el = document.getElementById(id);
+      var FIRST = document.querySelector('[aria-label="First Name"]');
+      if(!FIRST){ window.location.href = P.formUrl; return; }
+
+      function nativeSet(el, value){
         if(!el) return;
-        var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+        var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype
+                  : el.tagName === 'SELECT' ? window.HTMLSelectElement.prototype
+                  : window.HTMLInputElement.prototype;
         var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
         setter.call(el, value);
         el.dispatchEvent(new Event('input', { bubbles: true }));
         el.dispatchEvent(new Event('change', { bubbles: true }));
       }
-      function setSelect(id, value){
-        var el = document.getElementById(id);
-        if(!el) return;
-        var setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
-        setter.call(el, value);
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
+      function byAria(label){ return document.querySelector('[aria-label="' + label + '"]'); }
+      function byId(id){ return document.getElementById(id); }
+      function pick(radioId){
+        var el = byId(radioId);
+        if(el && !el.checked) el.click();
       }
-      function setRadio(id){
-        var el = document.getElementById(id);
-        if(!el) return;
-        el.checked = true;
-        el.dispatchEvent(new Event('click', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      setValue('edit-name-2', P.name);
-      setValue('edit-address-address', P.address);
-      setValue('edit-address-city', P.city);
-      setSelect('edit-address-state-province', P.state);
-      setValue('edit-address-postal-code', P.zip);
-      setValue('edit-phone-2', P.phone);
-      setValue('edit-email-2', P.email);
-      var now = new Date();
       function pd(n){ return String(n).padStart(2,'0'); }
-      setValue('edit-date-and-time-of-event-date', now.getFullYear()+'-'+pd(now.getMonth()+1)+'-'+pd(now.getDate()));
-      setValue('edit-date-and-time-of-event-time', pd(now.getHours())+':'+pd(now.getMinutes())+':'+pd(now.getSeconds()));
-      setRadio(P.aircraftId);
-      setRadio(P.operationId);
-      setRadio(P.contactId);
-      if(P.comments) setValue('edit-comments', P.comments);
+
+      function fireReact(el, value){
+        nativeSet(el, value);
+        var key = null;
+        for(var p in el){ if(p.indexOf('__reactProps$') === 0){ key = p; break; } }
+        var props = key ? el[key] : null;
+        if(!props) return;
+        var ev = {
+          target: el, currentTarget: el, type: 'change', bubbles: true,
+          persist: function(){}, preventDefault: function(){}, stopPropagation: function(){}
+        };
+        try{ if(typeof props.onChange === 'function') props.onChange(ev); }catch(e){}
+        try{ if(typeof props.onBlur === 'function') props.onBlur(ev); }catch(e){}
+      }
+
+      nativeSet(byAria('First Name'), P.firstname);
+      nativeSet(byAria('Last Name'), P.lastname);
+      nativeSet(byAria('Zip Code'), P.zip);
+      nativeSet(byAria('Phone Number'), P.phone);
+      nativeSet(byAria('Email'), P.email);
+
+      var addr = byId('plugin_yLygMa');
+      if(addr){
+        fireReact(addr, P.address);
+        addr.dispatchEvent(new Event('blur', { bubbles: true }));
+      }
+
+      var now = new Date();
+      var stamp = pd(now.getMonth()+1) + '/' + pd(now.getDate()) + '/' + now.getFullYear()
+                + ' ' + pd(now.getHours()) + ':' + pd(now.getMinutes());
+      function getProps(el){
+        if(!el) return null;
+        for(var p in el){ if(p.indexOf('__reactProps$') === 0) return el[p]; }
+        return null;
+      }
+      function mkEv(el){
+        return { target: el, currentTarget: el, bubbles: true,
+                 persist: function(){}, preventDefault: function(){}, stopPropagation: function(){} };
+      }
+      function pickerOpen(){ return !!document.querySelector('.react-datepicker'); }
+      function openPicker(){
+        var el = byId('plugin_3x1R0o');
+        if(!el || pickerOpen()) return;
+        var pr = getProps(el);
+        try{ if(pr && pr.onFocus) pr.onFocus(mkEv(el)); }catch(e){}
+        try{ if(pr && pr.onClick) pr.onClick(mkEv(el)); }catch(e){}
+        try{ el.click(); }catch(e){}
+      }
+      function clickToday(){
+        var cell = document.querySelector('.react-datepicker__day--today:not(.react-datepicker__day--outside-month)')
+                || document.querySelector('.react-datepicker__day--today');
+        if(cell) try{ cell.click(); }catch(e){}
+      }
+      function setTimeInput(hhmm){
+        var t = document.querySelector('input.react-datepicker-time__input');
+        if(!t) return false;
+        var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        try{ setter.call(t, hhmm); }catch(e){}
+        t.dispatchEvent(new Event('input', { bubbles: true }));
+        t.dispatchEvent(new Event('change', { bubbles: true }));
+        var pr = getProps(t);
+        try{ if(pr && pr.onChange) pr.onChange(mkEv(t)); }catch(e){}
+        return true;
+      }
+      function closePicker(){
+        try{ document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); }catch(e){}
+        try{ document.body.click(); }catch(e){}
+        var el = byId('plugin_3x1R0o');
+        if(el) el.blur();
+      }
+
+      var hhmm = pd(now.getHours()) + ':' + pd(now.getMinutes());
+      setTimeout(openPicker, 60);
+      setTimeout(clickToday, 320);
+      setTimeout(function(){ if(!pickerOpen()) openPicker(); }, 560);
+      setTimeout(function(){ setTimeInput(hhmm); }, 800);
+      setTimeout(function(){ if(!byId('plugin_3x1R0o').value){ openPicker(); } }, 1050);
+      setTimeout(function(){ if(!byId('plugin_3x1R0o').value){ clickToday(); setTimeInput(hhmm); } }, 1300);
+      setTimeout(closePicker, 1600);
+
+      var sel = byAria('Type of Aircraft');
+      if(sel){
+        for(var i=0; i<sel.options.length; i++){
+          if(/single/i.test(sel.options[i].text)){ nativeSet(sel, sel.options[i].value); break; }
+        }
+      }
+
+      pick(P.contactYes ? 'option_a6HGaL' : 'option_y7qfNB');
+      pick('option_yuEcbs');
+
+      var ta = byId('textarea_P3qcNH');
+      if(ta && P.comments) nativeSet(ta, P.comments);
+
       var dropFocus = function(){
         var a = document.activeElement;
         if(a && a !== document.body && typeof a.blur === 'function') a.blur();
       };
-      var focusSubmit = function(){
+      var goCaptcha = function(){
         dropFocus();
-        var el = document.getElementById('edit-submit');
-        if(!el) return;
-        var top = el.getBoundingClientRect().top + window.pageYOffset;
-        window.scrollTo(0, Math.max(0, top - (window.innerHeight * 0.62)));
+        var t = document.querySelector('.g-recaptcha')
+             || document.querySelector('iframe[src*="recaptcha"]')
+             || document.querySelector('.form_submit_button');
+        if(t){
+          try{ t.scrollIntoView({ block: 'end', inline: 'nearest' }); }catch(e){
+            try{ t.scrollIntoView(false); }catch(e2){}
+          }
+          var n = t.parentElement;
+          while(n && n !== document.body && n !== document.documentElement){
+            if(n.scrollHeight > n.clientHeight + 5) n.scrollTop = n.scrollHeight;
+            n = n.parentElement;
+          }
+        }
+        var docH = Math.max(
+          document.documentElement.scrollHeight || 0,
+          document.body ? document.body.scrollHeight : 0
+        );
+        window.scrollTo(0, docH);
+        if(document.scrollingElement) document.scrollingElement.scrollTop = docH;
       };
-      focusSubmit();
-      setTimeout(focusSubmit, 350);
-      setTimeout(focusSubmit, 1000);
-      setTimeout(focusSubmit, 2000);
+      setTimeout(goCaptcha, 1800);
+      setTimeout(goCaptcha, 2300);
+      setTimeout(goCaptcha, 3000);
     };
 
     const code = 'javascript:(' + fn.toString() + ')(' + JSON.stringify(payload) + ');void 0;';
