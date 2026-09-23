@@ -524,9 +524,8 @@
   });
 
   document.getElementById('btnEditInfo').addEventListener('click', () => {
-    if(confirm('Unlock your saved info to make changes?')){
-      setLocked(false);
-    }
+    setLocked(false);
+    toast('Unlocked \u2014 edit your info, then Save & Lock');
   });
 
   // ---------- comments default ----------
@@ -577,180 +576,83 @@
       formUrl: FORM_URL
     };
 
-    const fn = function(P){
-      var FIRST = document.querySelector('[aria-label="First Name"]');
-      if(!FIRST){ window.location.href = P.formUrl; return; }
-
-      function nativeSet(el, value){
-        if(!el) return;
-        var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype
-                  : el.tagName === 'SELECT' ? window.HTMLSelectElement.prototype
-                  : window.HTMLInputElement.prototype;
-        var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
-        setter.call(el, value);
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      function byAria(label){ return document.querySelector('[aria-label="' + label + '"]'); }
-      function byId(id){ return document.getElementById(id); }
-      function pick(radioId){
-        var el = byId(radioId);
-        if(el && !el.checked) el.click();
-      }
-      function pd(n){ return String(n).padStart(2,'0'); }
-
-      function fireReact(el, value){
-        nativeSet(el, value);
-        var key = null;
-        for(var p in el){ if(p.indexOf('__reactProps$') === 0){ key = p; break; } }
-        var props = key ? el[key] : null;
-        if(!props) return;
-        var ev = {
-          target: el, currentTarget: el, type: 'change', bubbles: true,
-          persist: function(){}, preventDefault: function(){}, stopPropagation: function(){}
-        };
-        try{ if(typeof props.onChange === 'function') props.onChange(ev); }catch(e){}
-        try{ if(typeof props.onBlur === 'function') props.onBlur(ev); }catch(e){}
-      }
-
-      nativeSet(byAria('First Name'), P.firstname);
-      nativeSet(byAria('Last Name'), P.lastname);
-      nativeSet(byAria('Zip Code'), P.zip);
-      nativeSet(byAria('Phone Number'), P.phone);
-      nativeSet(byAria('Email'), P.email);
-
-      var addr = byId('plugin_yLygMa');
-      if(addr){
-        fireReact(addr, P.address);
-        addr.dispatchEvent(new Event('blur', { bubbles: true }));
-      }
-
-      var now = new Date();
-      var stamp = pd(now.getMonth()+1) + '/' + pd(now.getDate()) + '/' + now.getFullYear()
-                + ' ' + pd(now.getHours()) + ':' + pd(now.getMinutes());
-      function getProps(el){
-        if(!el) return null;
-        for(var p in el){ if(p.indexOf('__reactProps$') === 0) return el[p]; }
-        return null;
-      }
-      function mkEv(el){
-        return { target: el, currentTarget: el, bubbles: true,
-                 persist: function(){}, preventDefault: function(){}, stopPropagation: function(){} };
-      }
-      function pickerOpen(){ return !!document.querySelector('.react-datepicker'); }
-      function openPicker(){
-        var el = byId('plugin_3x1R0o');
-        if(!el || pickerOpen()) return;
-        var pr = getProps(el);
-        try{ if(pr && pr.onFocus) pr.onFocus(mkEv(el)); }catch(e){}
-        try{ if(pr && pr.onClick) pr.onClick(mkEv(el)); }catch(e){}
-        try{ el.click(); }catch(e){}
-      }
-      function clickToday(){
-        var cell = document.querySelector('.react-datepicker__day--today:not(.react-datepicker__day--outside-month)')
-                || document.querySelector('.react-datepicker__day--today');
-        if(cell) try{ cell.click(); }catch(e){}
-      }
-      function setTimeInput(hhmm){
-        var t = document.querySelector('input.react-datepicker-time__input');
-        if(!t) return false;
-        var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-        try{ setter.call(t, hhmm); }catch(e){}
-        t.dispatchEvent(new Event('input', { bubbles: true }));
-        t.dispatchEvent(new Event('change', { bubbles: true }));
-        var pr = getProps(t);
-        try{ if(pr && pr.onChange) pr.onChange(mkEv(t)); }catch(e){}
-        return true;
-      }
-      function closePicker(){
-        try{ document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); }catch(e){}
-        try{ document.body.click(); }catch(e){}
-        var el = byId('plugin_3x1R0o');
-        if(el) el.blur();
-      }
-
-      var hhmm = pd(now.getHours()) + ':' + pd(now.getMinutes());
-      setTimeout(openPicker, 60);
-      setTimeout(clickToday, 320);
-      setTimeout(function(){ if(!pickerOpen()) openPicker(); }, 560);
-      setTimeout(function(){ setTimeInput(hhmm); }, 800);
-      setTimeout(function(){ if(!byId('plugin_3x1R0o').value){ openPicker(); } }, 1050);
-      setTimeout(function(){ if(!byId('plugin_3x1R0o').value){ clickToday(); setTimeInput(hhmm); } }, 1300);
-      setTimeout(closePicker, 1600);
-
-      var sel = byAria('Type of Aircraft');
-      if(sel){
-        for(var i=0; i<sel.options.length; i++){
-          if(/single/i.test(sel.options[i].text)){ nativeSet(sel, sel.options[i].value); break; }
-        }
-      }
-
-      pick(P.contactYes ? 'option_a6HGaL' : 'option_y7qfNB');
-      pick('option_yuEcbs');
-      pick('option_jD40s7');
-
-      var ta = byId('textarea_P3qcNH');
-      if(ta && P.comments) nativeSet(ta, P.comments);
-
-      var dropFocus = function(){
-        var a = document.activeElement;
-        if(a && a !== document.body && typeof a.blur === 'function') a.blur();
-      };
-      var goCaptcha = function(){
-        dropFocus();
-        var t = document.querySelector('.g-recaptcha')
-             || document.querySelector('iframe[src*="recaptcha"]')
-             || document.querySelector('.form_submit_button');
-        if(t){
-          try{ t.scrollIntoView({ block: 'end', inline: 'nearest' }); }catch(e){
-            try{ t.scrollIntoView(false); }catch(e2){}
-          }
-          var n = t.parentElement;
-          while(n && n !== document.body && n !== document.documentElement){
-            if(n.scrollHeight > n.clientHeight + 5) n.scrollTop = n.scrollHeight;
-            n = n.parentElement;
-          }
-        }
-        var docH = Math.max(
-          document.documentElement.scrollHeight || 0,
-          document.body ? document.body.scrollHeight : 0
-        );
-        window.scrollTo(0, docH);
-        if(document.scrollingElement) document.scrollingElement.scrollTop = docH;
-      };
-      setTimeout(goCaptcha, 1800);
-      setTimeout(goCaptcha, 2300);
-      setTimeout(goCaptcha, 3000);
-    };
+    const fn = function(e){if(document.querySelector('[aria-label="First Name"]')){f(m("First Name"),e.firstname),f(m("Last Name"),e.lastname),f(m("Zip Code"),e.zip),f(m("Phone Number"),e.phone),f(m("Email"),e.email);var t=y("plugin_yLygMa");t&&(function(e,t){f(e,t);var n=null;for(var r in e)if(0===r.indexOf("__reactProps$")){n=r;break}var o=n?e[n]:null;if(o){var c={target:e,currentTarget:e,type:"change",bubbles:!0,persist:function(){},preventDefault:function(){},stopPropagation:function(){}};try{"function"==typeof o.onChange&&o.onChange(c)}catch(e){}try{"function"==typeof o.onBlur&&o.onBlur(c)}catch(e){}}}(t,e.address),t.dispatchEvent(new Event("blur",{bubbles:!0})));var n=m("Type of Aircraft");if(n)for(var r=0;r<n.options.length;r++)if(/single/i.test(n.options[r].text)){f(n,n.options[r].value);break}v(e.contactYes?"option_a6HGaL":"option_y7qfNB"),v("option_yuEcbs"),v("option_jD40s7");var o=new Date,c=b(o.getHours())+":"+b(o.getMinutes()),a=b(o.getMonth()+1)+"/"+b(o.getDate())+"/"+o.getFullYear(),i=y("textarea_P3qcNH");i&&e.comments&&f(i,String(e.comments).replace(/\s+$/,"")+" Observed "+c+" on "+a+".");var u="plugin_3x1R0o",l=Date.now(),s=0,p=0,d=setInterval(function(){var e;if(Date.now()-l>2500)T();else if(0!==s)if(1!==s)if(2!==s)if(3!==s){if(4!==s)return 5===s?(_(),s=6,void(p=0)):void(E()?++p>4?T():_():T());(function(e){var t=document.querySelector("input.react-datepicker-time__input");if(!t)return!1;var n=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,"value").set;try{n.call(t,e)}catch(e){}t.dispatchEvent(new Event("input",{bubbles:!0})),t.dispatchEvent(new Event("change",{bubbles:!0}));var r=h(t);try{r&&r.onChange&&r.onChange(g(t))}catch(e){}try{t.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",keyCode:13,which:13,bubbles:!0}))}catch(e){}return!0}(c)||++p>10)&&(s=5,p=0)}else E()?(s=4,p=0):++p>10?(s=5,p=0):w();else((e=y(u))&&e.value||++p>6)&&(s=3,p=0);else(function(){var e=document.querySelector(".react-datepicker__day--today:not(.react-datepicker__day--outside-month)")||document.querySelector(".react-datepicker__day--today");if(e)try{return e.click(),!0}catch(e){}return!1}()||++p>6)&&(s=2,p=0);else E()?(s=1,p=0):w()},50)}else window.location.href=e.formUrl;function f(e,t){if(e){var n="TEXTAREA"===e.tagName?window.HTMLTextAreaElement.prototype:"SELECT"===e.tagName?window.HTMLSelectElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(n,"value").set.call(e,t),e.dispatchEvent(new Event("input",{bubbles:!0})),e.dispatchEvent(new Event("change",{bubbles:!0}))}}function m(e){return document.querySelector('[aria-label="'+e+'"]')}function y(e){return document.getElementById(e)}function v(e){var t=y(e);t&&!t.checked&&t.click()}function b(e){return String(e).padStart(2,"0")}function h(e){if(!e)return null;for(var t in e)if(0===t.indexOf("__reactProps$"))return e[t];return null}function g(e){return{target:e,currentTarget:e,bubbles:!0,persist:function(){},preventDefault:function(){},stopPropagation:function(){}}}function E(){return!!document.querySelector(".react-datepicker")}function w(){var e=y(u);if(e&&!E()){var t=h(e);try{t&&t.onFocus&&t.onFocus(g(e))}catch(e){}try{t&&t.onClick&&t.onClick(g(e))}catch(e){}try{e.click()}catch(e){}}}function _(){var e=y(u);if(e){try{e.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",keyCode:27,which:27,bubbles:!0}))}catch(e){}try{e.blur()}catch(e){}}}function k(){for(var e=y("plugin_AAFLlM")||document.querySelector(".form_submit_button")||y("textarea_P3qcNH"),t=e?e.parentElement:null;t&&t!==document.body&&t!==document.documentElement;)t.scrollHeight>t.clientHeight+5&&(t.scrollTop=t.scrollHeight),t=t.parentElement;var n=Math.max(document.documentElement.scrollHeight||0,document.body?document.body.scrollHeight:0);window.scrollTo(0,n),document.scrollingElement&&(document.scrollingElement.scrollTop=n)}function T(){clearInterval(d);var e=document.activeElement;e&&e!==document.body&&"function"==typeof e.blur&&e.blur(),k(),setTimeout(k,250),setTimeout(k,700)}};
 
     const code = 'javascript:(' + fn.toString() + ')(' + JSON.stringify(payload) + ');void 0;';
     return code;
   }
 
+  function copyWithVerify(code){
+    if(!navigator.clipboard || !navigator.clipboard.writeText){
+      toast('Tap the code box below to select, then Copy');
+      return;
+    }
+    const tail = code.slice(-8);
+    navigator.clipboard.writeText(code).then(()=>{
+      if(!navigator.clipboard.readText){
+        toast('Copied. Verify the paste ends with ;void 0;');
+        return;
+      }
+      navigator.clipboard.readText().then((back)=>{
+        if(back && back.length === code.length && back.slice(-8) === tail){
+          toast('Copied and verified \u2014 ' + code.length + ' chars');
+        } else {
+          toast('TRUNCATED (' + (back ? back.length : 0) + ' of ' + code.length + ') \u2014 tap the code box below instead');
+        }
+      }).catch(()=>{
+        toast('Copied. Verify the paste ends with ;void 0;');
+      });
+    }).catch(()=>{
+      toast('Copy failed \u2014 tap the code box below instead');
+    });
+  }
+
+  function showCode(code){
+    const card = document.getElementById('afterFillCard');
+    const box = document.getElementById('codePreview');
+    if(card) card.style.display = 'block';
+    if(box) box.textContent = code;
+  }
+
+  function selectCodeBox(){
+    const box = document.getElementById('codePreview');
+    if(!box || !box.textContent || box.textContent.indexOf('javascript:') !== 0) return;
+    try{
+      const r = document.createRange();
+      r.selectNodeContents(box);
+      const s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+      toast('Selected all ' + box.textContent.length + ' chars \u2014 now tap Copy');
+    }catch(e){}
+  }
+
   document.getElementById('btnFill').addEventListener('click', () => {
     const code = buildFillCode();
     if(!code) return;
-    navigator.clipboard.writeText(code).then(()=>{
-      toast('Copied — see How To Use tab to paste it into your bookmark');
-    }).catch(()=>{
-      toast('Copied to text box below — copy manually if needed');
-    });
-    document.getElementById('afterFillCard').style.display = 'block';
-    document.getElementById('codePreview').textContent = code;
+    showCode(code);
     updatePreview();
+    copyWithVerify(code);
   });
 
   document.getElementById('btnCopyBookmarklet').addEventListener('click', () => {
     const code = buildFillCode();
     if(!code) return;
-    navigator.clipboard.writeText(code).then(()=>{
-      toast('Copied — paste into your bookmark\u2019s address field');
-    }).catch(()=>{
-      toast('Copy failed — try again or copy manually');
-    });
+    showCode(code);
+    copyWithVerify(code);
   });
+
+  (function(){
+    const box = document.getElementById('codePreview');
+    if(box){
+      box.style.userSelect = 'all';
+      box.style.webkitUserSelect = 'all';
+      box.addEventListener('click', selectCodeBox);
+    }
+  })();
 
 })();
 </script>
+  <div style="text-align:center;font-size:11px;opacity:.45;padding:10px 0 20px;">build 30 (min)</div>
 </body>
 </html>
